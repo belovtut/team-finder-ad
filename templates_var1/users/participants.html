@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% url 'users:list' as participants_list_link %}
+
 {% block title %}Участники{% endblock %}
 
 {% block extra_css %}
@@ -38,7 +40,7 @@
                     Участники моих проектов
                 </a>
                 {% if active_filter %}
-                <a href="/users/list" class="filter-reset">Сбросить</a>
+                <a href="{% url 'users:list' %}" class="filter-reset">Сбросить</a>
                 {% endif %}
             </div>
         </div>
@@ -60,7 +62,7 @@
                 <p class="participant-role">{{ participant.about|truncatechars:80 }}</p>
             </div>
             <div class="participant-card-footer">
-                <a href="/users/{{ participant.id }}" class="white-button">
+                <a href="{% url 'users:detail' participant.id %}" class="white-button">
                     {% include 'includes/svg/eye.html' %} Посмотреть контакты
                 </a>
             </div>
@@ -68,7 +70,19 @@
         {% endfor %}
     </div>
     {% else %}
-    {% include 'includes/empty-project-card.html' with empty_title="Пока нет участников" empty_message="Попробуйте сбросить фильтр" button_link="/users/list" button_text="Сбросить" %}
+    {% include 'includes/empty-project-card.html' with empty_title="Пока нет участников" empty_message="Попробуйте сбросить фильтр" button_link=participants_list_link button_text="Сбросить" %}
+    {% endif %}
+
+    {% if page_obj and page_obj.paginator.num_pages > 1 %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if active_filter %}&filter={{ active_filter }}{% endif %}">Назад</a>
+        {% endif %}
+        <span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if active_filter %}&filter={{ active_filter }}{% endif %}">Вперед</a>
+        {% endif %}
+    </div>
     {% endif %}
 </div>
 {% endblock %}

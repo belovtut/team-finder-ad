@@ -1,6 +1,12 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% if request.user.is_authenticated %}
+    {% url 'projects:create' as projects_create_link %}
+{% else %}
+    {% url 'users:login' as projects_create_link %}
+{% endif %}
+
 {% block title %}Актуальные проекты{% endblock %}
 
 {% block extra_css %}
@@ -12,20 +18,46 @@
 <div class="project-container">
     <div class="project-header">
         <h2 class="project-title">Актуальные проекты</h2>
-        {% if projects %}
-            <a href="/projects/create-project" class="black-button">+ Создать проект</a>
+        {% if request.user.is_authenticated %}
+            <a href="{% url 'projects:create' %}" class="black-button">+ Создать проект</a>
         {% endif %}
     </div>
     <p class="project-subtitle">Найдите интересный проект и присоединитесь к команде</p>
+
+    {% if skills %}
+    <div class="skills-filter">
+        <span class="filter-label">Фильтр по навыкам:</span>
+        <div class="filter-chips">
+            {% for skill in skills %}
+            <a href="?skill={{ skill.id }}" class="filter-chip {% if active_skill == skill.id %}active{% endif %}">
+                {{ skill.name }}
+            </a>
+            {% endfor %}
+            {% if active_skill %}
+            <a href="{% url 'projects:list' %}" class="filter-reset">Сбросить</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
 
     <div class="projects-grid">
         {% for project in projects %}
         {% include 'includes/project-card.html' %}
         {% empty %}
-        {% include 'includes/empty-project-card.html' with empty_title="Пока нет проектов" empty_message="Создавайте проекты и делитесь ими с другими пользователями!" button_link="/projects/create-project" button_text="+ Создать проект" %}
+        {% include 'includes/empty-project-card.html' with empty_title="Пока нет проектов" empty_message="Создавайте проекты и делитесь ими с другими пользователями!" button_link=projects_create_link button_text="+ Создать проект" %}
         {% endfor %}
     </div>
-    {% include 'includes/project-fav-toggle.js' %}
+    {% if page_obj and page_obj.paginator.num_pages > 1 %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if active_skill %}&skill={{ active_skill }}{% endif %}">Назад</a>
+        {% endif %}
+        <span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if active_skill %}&skill={{ active_skill }}{% endif %}">Вперед</a>
+        {% endif %}
+    </div>
+    {% endif %}
 </div>
 
 {% endblock %}

@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% url 'projects:list' as projects_list_link %}
+
 {% block title %}Избранное{% endblock %}
 
 {% block extra_css %}
@@ -18,12 +20,23 @@
     <div class="projects-grid">
         {% for project in projects %}
         {% include 'includes/project-card.html' %}
-        {% empty %}
-        {% include 'includes/empty-project-card.html' with empty_title="Пока нет избранных проектов" empty_message="Добавляйте проекты в избранное, чтобы не потерять их" button_link="/projects/list" button_text="Посмотреть проекты" %}
         {% endfor %}
+        <div id="empty-favorite-template" {% if projects %}style="display:none"{% endif %}>
+            {% include 'includes/empty-project-card.html' with empty_title="Пока нет избранных проектов" empty_message="Добавляйте проекты в избранное, чтобы не потерять их" button_link=projects_list_link button_text="Посмотреть проекты" %}
+        </div>
     </div>
 
-    {% include 'includes/project-fav-toggle.js' %}
+        {% if page_obj and page_obj.paginator.num_pages > 1 %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}">Назад</a>
+            {% endif %}
+            <span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">Вперед</a>
+            {% endif %}
+        </div>
+        {% endif %}
 </div>
 
 {% endblock %}

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ project.title }}{% endblock %}
+{% block title %}{{ project.name }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/project_details.css' %}">
@@ -12,7 +12,7 @@
 <div class="project-container">
     <div class="project-card">
         <div class="project-card-header">
-            <a href="/users/{{ project.owner.id }}">
+            <a href="{% url 'users:detail' project.owner.id %}">
                 <div class="project-card-header-left">
                     {% if project.owner.avatar %}
                         <img src="{{ project.owner.avatar.url }}" alt="Аватар автора" class="project-author-avatar">
@@ -52,11 +52,22 @@
         <div class="project-actions">
             <a href="#"
                class="black-button black-button-share share-button"
-               data-url="/projects/{{ project.id }}">
+               data-url="{% url 'projects:detail' project.id %}">
                 {% include 'includes/svg/share.html' %}
             </a>
+            <button
+                class="project-fav-icon {% if project.id in favorite_ids %}favorite{% else %}not-favorite{% endif %}"
+                data-project-id="{{ project.id }}"
+                data-fav="{% if project.id in favorite_ids %}true{% else %}false{% endif %}"
+                data-auth="{% if user.is_authenticated %}true{% else %}false{% endif %}"
+                data-login-url="{% url 'users:login' %}"
+                data-register-url="{% url 'users:register' %}"
+                title="Добавить в избранное"
+            >
+                {% include 'includes/svg/heart.html' %}
+            </button>
             {% if user.id == project.owner.id %}
-                <a href="/projects/{{ project.id }}/edit" class="black-button">
+                <a href="{% url 'projects:edit' project.id %}" class="black-button">
                     {% include 'includes/svg/pen.html' %}
                     Редактировать
                 </a>
@@ -76,7 +87,7 @@
                         {% if request.user in project.participants.all %}
                             Отказаться от участия
                         {% else %}
-                            Участвовать
+                            Присоединиться к проекту
                         {% endif %}
                     </button>
                 {% endif %}
@@ -89,7 +100,7 @@
     <h3>Участники проекта (<span id="participants-count" style="display:inline">{{ project.participants.all|length }}</span>)</h3>
     <div id="participants-list" class="participants-list">
         {% for member in project.participants.all %}
-        <a href="/users/{{ member.id }}" id="participant-{{ member.id }}">
+        <a href="{% url 'users:detail' member.id %}" id="participant-{{ member.id }}">
             <div class="participant-item">
                 {% if member.avatar %}
                     <img src="{{ member.avatar.url }}" alt="Аватар" class="participant-avatar">
@@ -109,6 +120,31 @@
         {% endfor %}
         </div>
     </div>
+
+    <div class="project-skills">
+        <h3>Необходимые навыки</h3>
+        <div id="skills-container" class="skills-container" data-scope="project" data-entity-id="{{ project.id }}">
+            {% for skill in project.skills.all %}
+            <span class="skill-chip" data-id="{{ skill.id }}">
+                {{ skill.name }}
+                {% if request.user.id == project.owner.id %}
+                <button type="button" class="remove-skill-btn" aria-label="Удалить" title="Удалить">×</button>
+                {% endif %}
+            </span>
+            {% empty %}
+            <span class="skill-empty">Навыки пока не добавлены</span>
+            {% endfor %}
+
+            {% if request.user.id == project.owner.id %}
+            <button type="button" class="add-skill-btn" id="add-skill-btn">+ Добавить</button>
+            <div id="skill-input-wrapper" class="skill-input-wrapper hidden">
+                <input id="skill-input" type="text" placeholder="Введите навык">
+                <ul id="skill-suggestions" class="skill-suggestions hidden"></ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
 </div>
 {% endblock %}
 {% endwith %}

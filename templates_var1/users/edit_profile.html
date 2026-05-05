@@ -6,6 +6,11 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/auth.css' %}">
 <link rel="stylesheet" href="{% static 'css/profile_edit.css' %}">
+<link rel="stylesheet" href="{% static 'css/skills.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/profile_edit.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -65,8 +70,28 @@
         </div>
         {% endif %}
 
+        <div class="form-field">
+            <label>Навыки</label>
+            <div id="skills-container" class="skills-container" data-scope="user" data-entity-id="{{ user.id }}">
+                {% for skill in user.skills.all %}
+                <span class="skill-chip" data-id="{{ skill.id }}">
+                    {{ skill.name }}
+                    <button type="button" class="remove-skill-btn" aria-label="Удалить" title="Удалить">×</button>
+                </span>
+                {% empty %}
+                <span class="skill-empty">Навыки пока не добавлены</span>
+                {% endfor %}
+
+                <button type="button" class="add-skill-btn" id="add-skill-btn">+ Добавить</button>
+                <div id="skill-input-wrapper" class="skill-input-wrapper hidden">
+                    <input id="skill-input" type="text" placeholder="Введите навык">
+                    <ul id="skill-suggestions" class="skill-suggestions hidden"></ul>
+                </div>
+            </div>
+        </div>
+
         <div class="form-actions">
-            <a href="/users/{{ user.id }}" class="cancel-button">Отмена</a>
+            <a href="{% url 'users:detail' user.id %}" class="cancel-button">Отмена</a>
             <button type="submit" class="save-button">Сохранить</button>
         </div>
     </form>
