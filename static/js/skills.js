@@ -4,13 +4,14 @@
     const container = document.getElementById("skills-container");
     if (!container) return;
 
-    const projectId = container.dataset.projectId;
+    const scope = container.dataset.scope || "project";
+    const entityId = container.dataset.entityId || container.dataset.projectId;
     const addBtn = document.getElementById("add-skill-btn");
     const inputWrapper = document.getElementById("skill-input-wrapper");
     const input = document.getElementById("skill-input");
     const suggestions = document.getElementById("skill-suggestions");
 
-    if (!addBtn || !inputWrapper || !input || !suggestions) return;
+    if (!entityId || !addBtn || !inputWrapper || !input || !suggestions) return;
 
     addBtn.addEventListener("click", () => {
       addBtn.classList.add("hidden");
@@ -31,7 +32,8 @@
         return;
       }
       t = setTimeout(async () => {
-        const res = await fetch(`/projects/skills/?q=${encodeURIComponent(q)}`);
+        const searchUrl = scope === "user" ? "/users/skills/" : "/projects/skills/";
+        const res = await fetch(`${searchUrl}?q=${encodeURIComponent(q)}`);
         if (!res.ok) return;
         const data = await res.json();
 
@@ -100,7 +102,10 @@
       if (e.target.classList.contains("remove-skill-btn")) {
         const chip = e.target.closest(".skill-chip");
         const skillId = chip.dataset.id;
-        const res = await fetch(`/projects/${projectId}/skills/${skillId}/remove/`, {
+        const removeUrl = scope === "user"
+          ? `/users/${entityId}/skills/${skillId}/remove/`
+          : `/projects/${entityId}/skills/${skillId}/remove/`;
+        const res = await fetch(removeUrl, {
           method: "POST",
           headers: { "X-CSRFToken": getCookie("csrftoken") }
         });
@@ -111,7 +116,10 @@
     });
 
     async function addSkillById(skillId) {
-      const res = await fetch(`/projects/${projectId}/skills/add/`, {
+      const addUrl = scope === "user"
+        ? `/users/${entityId}/skills/add/`
+        : `/projects/${entityId}/skills/add/`;
+      const res = await fetch(addUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -126,7 +134,10 @@
     }
 
     async function addSkillByName(name) {
-      const res = await fetch(`/projects/${projectId}/skills/add/`, {
+      const addUrl = scope === "user"
+        ? `/users/${entityId}/skills/add/`
+        : `/projects/${entityId}/skills/add/`;
+      const res = await fetch(addUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

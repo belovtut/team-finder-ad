@@ -81,6 +81,15 @@
     justify-content: flex-end
 }
 
+.project-fav-icon {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.project-fav-icon:hover {
+    transform: scale(1.1);
+}
+
 .project-participants-card {
     background: #fff;
     border: 1px solid #ddd;

@@ -234,3 +234,25 @@
     text-decoration: underline;
     color: #666;
 }
+
+.pagination {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+    margin-top: 28px;
+    font-size: 14px;
+}
+
+.pagination a {
+    text-decoration: none;
+    color: #222;
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: #fafafa;
+}
+
+.pagination a:hover {
+    background: #f0f0f0;
+}

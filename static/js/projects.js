@@ -87,7 +87,7 @@
             participantsCount.textContent = parseInt(participantsCount.textContent) + 1;
 
           } else {
-            participateBtn.textContent = "Участвовать";
+            participateBtn.textContent = "Присоединиться к проекту";
 
             const el = document.getElementById(`participant-${userId}`);
             if (el) el.remove();
