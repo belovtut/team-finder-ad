@@ -11,13 +11,6 @@ class ProjectForm(forms.ModelForm):
         model = Project
         fields = ("name", "description", "github_url", "status")
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["status"].choices = [
-            (Project.STATUS_OPEN, "Открыт"),
-            (Project.STATUS_CLOSED, "Закрыт"),
-        ]
-
     def clean_github_url(self):
         value = self.cleaned_data.get("github_url")
         if not value:

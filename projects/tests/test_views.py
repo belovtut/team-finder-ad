@@ -14,20 +14,20 @@ class ProjectViewsTests(TestCase):
         self.owner = User.objects.create_user(
             email="owner@example.com",
             password="owner-pass",
-            name="Owner",
-            surname="User",
+            first_name="Owner",
+            last_name="User",
         )
         self.member = User.objects.create_user(
             email="member@example.com",
             password="member-pass",
-            name="Member",
-            surname="User",
+            first_name="Member",
+            last_name="User",
         )
         self.staff = User.objects.create_user(
             email="staff@example.com",
             password="staff-pass",
-            name="Staff",
-            surname="User",
+            first_name="Staff",
+            last_name="User",
             is_staff=True,
         )
 
@@ -39,7 +39,7 @@ class ProjectViewsTests(TestCase):
                 "name": "Demo",
                 "description": "desc",
                 "github_url": "",
-                "status": Project.STATUS_OPEN,
+                "status": Project.Status.OPEN,
             },
         )
 
@@ -52,7 +52,7 @@ class ProjectViewsTests(TestCase):
             name="Favorite",
             description="",
             owner=self.owner,
-            status=Project.STATUS_OPEN,
+            status=Project.Status.OPEN,
         )
         self.client.force_login(self.member)
 
@@ -70,7 +70,7 @@ class ProjectViewsTests(TestCase):
             name="Favorite Guest",
             description="",
             owner=self.owner,
-            status=Project.STATUS_OPEN,
+            status=Project.Status.OPEN,
         )
 
         response = self.client.post(
@@ -86,7 +86,7 @@ class ProjectViewsTests(TestCase):
             name="Participate",
             description="",
             owner=self.owner,
-            status=Project.STATUS_OPEN,
+            status=Project.Status.OPEN,
         )
         self.client.force_login(self.member)
 
@@ -104,7 +104,7 @@ class ProjectViewsTests(TestCase):
             name="Skill Project",
             description="",
             owner=self.owner,
-            status=Project.STATUS_OPEN,
+            status=Project.Status.OPEN,
         )
         self.client.force_login(self.owner)
 
@@ -125,7 +125,7 @@ class ProjectViewsTests(TestCase):
             name="Edit Target",
             description="",
             owner=self.owner,
-            status=Project.STATUS_OPEN,
+            status=Project.Status.OPEN,
         )
         self.client.force_login(self.staff)
 
@@ -135,7 +135,7 @@ class ProjectViewsTests(TestCase):
                 "name": "Updated",
                 "description": "Updated",
                 "github_url": "",
-                "status": Project.STATUS_OPEN,
+                "status": Project.Status.OPEN,
             },
         )
 

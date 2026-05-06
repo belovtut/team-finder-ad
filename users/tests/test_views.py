@@ -14,8 +14,8 @@ class UserViewsTests(TestCase):
         response = self.client.post(
             reverse("users:register"),
             data={
-                "name": "Иван",
-                "surname": "Петров",
+                "first_name": "Иван",
+                "last_name": "Петров",
                 "email": "ivan@example.com",
                 "password": "testpass123",
             },
@@ -32,8 +32,8 @@ class UserViewsTests(TestCase):
         User.objects.create_user(
             email="user@example.com",
             password="correct-pass",
-            name="Test",
-            surname="User",
+            first_name="Test",
+            last_name="User",
         )
 
         response = self.client.post(
@@ -47,20 +47,20 @@ class UserViewsTests(TestCase):
         owner = User.objects.create_user(
             email="owner@example.com",
             password="owner-pass",
-            name="Owner",
-            surname="User",
+            first_name="Owner",
+            last_name="User",
         )
         member = User.objects.create_user(
             email="member@example.com",
             password="member-pass",
-            name="Member",
-            surname="User",
+            first_name="Member",
+            last_name="User",
         )
         project = Project.objects.create(
             name="Team Project",
             description="",
             owner=owner,
-            status=Project.STATUS_OPEN,
+            status=Project.Status.OPEN,
         )
         project.participants.add(member)
 
@@ -77,16 +77,16 @@ class UserViewsTests(TestCase):
         user = User.objects.create_user(
             email="owner@example.com",
             password="owner-pass",
-            name="Owner",
-            surname="User",
+            first_name="Owner",
+            last_name="User",
         )
         self.client.force_login(user)
 
         response = self.client.post(
             reverse("users:edit_profile"),
             data={
-                "name": "Owner",
-                "surname": "User",
+                "first_name": "Owner",
+                "last_name": "User",
                 "about": "",
                 "phone": "",
                 "github_url": "github.com/user123",
@@ -101,8 +101,8 @@ class UserViewsTests(TestCase):
         user = User.objects.create_user(
             email="skills@example.com",
             password="skills-pass",
-            name="Skills",
-            surname="Owner",
+            first_name="Skills",
+            last_name="Owner",
         )
         self.client.force_login(user)
 
@@ -130,14 +130,14 @@ class UserViewsTests(TestCase):
         owner = User.objects.create_user(
             email="owner@example.com",
             password="owner-pass",
-            name="Owner",
-            surname="User",
+            first_name="Owner",
+            last_name="User",
         )
         other = User.objects.create_user(
             email="other@example.com",
             password="other-pass",
-            name="Other",
-            surname="User",
+            first_name="Other",
+            last_name="User",
         )
         self.client.force_login(other)
 

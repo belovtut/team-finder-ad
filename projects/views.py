@@ -1,21 +1,19 @@
 import json
+from http import HTTPStatus
 
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+
+from team_finder.pagination import DEFAULT_PAGE_SIZE, paginate_queryset
 
 from .forms import ProjectForm
 from .models import Project, Skill
 
 
-PROJECTS_PER_PAGE = 12
-
-
 def project_list(request):
     projects = Project.objects.select_related("owner").prefetch_related("participants", "skills")
-    projects = projects.order_by("-created_at")
 
     skills = Skill.objects.order_by("name")
     active_skill = None
@@ -27,8 +25,7 @@ def project_list(request):
         except ValueError:
             active_skill = None
 
-    paginator = Paginator(projects, PROJECTS_PER_PAGE)
-    page_obj = paginator.get_page(request.GET.get("page"))
+    page_obj = paginate_queryset(projects, request.GET.get("page"), DEFAULT_PAGE_SIZE)
 
     favorite_ids = set()
     if request.user.is_authenticated:
@@ -70,10 +67,8 @@ def project_detail(request, project_id):
 @login_required
 def favorite_projects(request):
     projects = request.user.favorites.select_related("owner").prefetch_related("participants")
-    projects = projects.order_by("-created_at")
 
-    paginator = Paginator(projects, PROJECTS_PER_PAGE)
-    page_obj = paginator.get_page(request.GET.get("page"))
+    page_obj = paginate_queryset(projects, request.GET.get("page"), DEFAULT_PAGE_SIZE)
 
     favorite_ids = set(request.user.favorites.values_list("id", flat=True))
 
@@ -87,15 +82,21 @@ def favorite_projects(request):
 @login_required
 def project_create(request):
     if request.method == "POST":
-        form = ProjectForm(request.POST)
-        if form.is_valid():
-            project = form.save(commit=False)
-            project.owner = request.user
-            project.save()
-            project.participants.add(request.user)
-            return redirect("projects:detail", project_id=project.id)
-    else:
-        form = ProjectForm()
+        form = ProjectForm(request.POST or None)
+        if not form.is_valid():
+            return render(
+                request,
+                "projects/create-project.html",
+                {"form": form, "is_edit": False},
+            )
+
+        project = form.save(commit=False)
+        project.owner = request.user
+        project.save()
+        project.participants.add(request.user)
+        return redirect("projects:detail", project_id=project.id)
+
+    form = ProjectForm()
 
     return render(
         request,
@@ -111,22 +112,32 @@ def project_edit(request, project_id):
         return HttpResponseForbidden("Недостаточно прав")
 
     if request.method == "POST":
-        form = ProjectForm(request.POST, instance=project)
-        if form.is_valid():
-            form.save()
-            return redirect("projects:detail", project_id=project.id)
-    else:
-        form = ProjectForm(instance=project)
+        form = ProjectForm(request.POST or None, instance=project)
+        if not form.is_valid():
+            return render(
+                request,
+                "projects/create-project.html",
+                {"form": form, "is_edit": True},
+            )
+
+        form.save()
+        return redirect("projects:detail", project_id=project.id)
+
+    form = ProjectForm(instance=project)
 
     return render(
         request,
         "projects/create-project.html",
         {"form": form, "is_edit": True},
     )
+
 @require_POST
 def toggle_favorite(request, project_id):
     if not request.user.is_authenticated:
-        return JsonResponse({"status": "error", "detail": "auth_required"}, status=401)
+        return JsonResponse(
+            {"status": "error", "detail": "auth_required"},
+            status=HTTPStatus.UNAUTHORIZED,
+        )
 
     project = get_object_or_404(Project, pk=project_id)
     favorites = request.user.favorites
@@ -162,11 +173,11 @@ def toggle_participate(request, project_id):
 def complete_project(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
     if project.owner != request.user and not request.user.is_staff:
-        return JsonResponse({"status": "error"}, status=403)
-    if project.status != Project.STATUS_OPEN:
-        return JsonResponse({"status": "error"}, status=400)
+        return JsonResponse({"status": "error"}, status=HTTPStatus.FORBIDDEN)
+    if project.status != Project.Status.OPEN:
+        return JsonResponse({"status": "error"}, status=HTTPStatus.BAD_REQUEST)
 
-    project.status = Project.STATUS_CLOSED
+    project.status = Project.Status.CLOSED
     project.save(update_fields=["status"])
 
     return JsonResponse({"status": "ok", "project_status": project.status})
@@ -186,7 +197,7 @@ def skills_search(request):
 def skills_add(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
     if project.owner != request.user and not request.user.is_staff:
-        return JsonResponse({"status": "error"}, status=403)
+        return JsonResponse({"status": "error"}, status=HTTPStatus.FORBIDDEN)
 
     try:
         payload = json.loads(request.body or "{}")
@@ -200,7 +211,7 @@ def skills_add(request, project_id):
     else:
         name = (payload.get("name") or "").strip()
         if not name:
-            return JsonResponse({"status": "error"}, status=400)
+            return JsonResponse({"status": "error"}, status=HTTPStatus.BAD_REQUEST)
         skill = Skill.objects.filter(name__iexact=name).first()
         if not skill:
             skill = Skill.objects.create(name=name)
@@ -214,7 +225,7 @@ def skills_add(request, project_id):
 def skills_remove(request, project_id, skill_id):
     project = get_object_or_404(Project, pk=project_id)
     if project.owner != request.user and not request.user.is_staff:
-        return JsonResponse({"status": "error"}, status=403)
+        return JsonResponse({"status": "error"}, status=HTTPStatus.FORBIDDEN)
 
     skill = get_object_or_404(Skill, pk=skill_id)
     project.skills.remove(skill)

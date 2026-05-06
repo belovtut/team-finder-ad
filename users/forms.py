@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 from django import forms
 from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 
 from .models import User
 
@@ -16,20 +17,20 @@ class RegistrationForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ("name", "surname", "email", "password")
-
-    def clean_email(self):
-        email = self.cleaned_data["email"].strip().lower()
-        if User.objects.filter(email__iexact=email).exists():
-            raise ValidationError("Пользователь с таким email уже существует")
-        return email
+        fields = ("first_name", "last_name", "email", "password")
 
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data["email"].strip().lower()
         user.set_password(self.cleaned_data["password"])
-        if commit:
+        if not commit:
+            return user
+
+        try:
             user.save()
+        except IntegrityError as exc:
+            raise ValidationError("Пользователь с таким email уже существует") from exc
+
         return user
 
 
@@ -60,7 +61,7 @@ class ProfileEditForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ("name", "surname", "avatar", "about", "phone", "github_url")
+        fields = ("first_name", "last_name", "avatar", "about", "phone", "github_url")
 
     def clean_phone(self):
         phone = self.cleaned_data.get("phone")

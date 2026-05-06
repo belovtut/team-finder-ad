@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="{% static 'css/skills.css' %}">
 {% endblock %}
 
-{% with page_id="profile" %}
+{% block page_id %}profile{% endblock %}
 {% block content %}
 <div class="profile-container">
     <div class="profile-header">
@@ -20,7 +20,7 @@
                 <img src="{% static 'images/default-avatar.png' %}" alt="Аватар по умолчанию" class="profile-avatar">
             {% endif %}
             <div class="profile-details">
-                <h2 class="profile-name">{{ user.name }} {{ user.surname }}</h2>
+                <h2 class="profile-name">{{ user.first_name }} {{ user.last_name }}</h2>
                 <p class="profile-description">
                     {{ user.about|default:"Описание профиля пока не добавлено." }}
                 </p>
@@ -129,4 +129,3 @@
     </div>
 </div>
 {% endblock %}
-{% endwith %}

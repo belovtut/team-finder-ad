@@ -95,6 +95,12 @@ python manage.py seed_demo
 - andrey@example.com / demo12345
 - alena@example.com / demo12345
 
+Создание пользователя с доступом в Админ-панель:
+
+```bash
+python manage.py createsuperuser
+```
+
 ### 6. Запуск сервера
 
 ```bash

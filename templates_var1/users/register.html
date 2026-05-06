@@ -13,8 +13,8 @@
     <form method="post">
         {% csrf_token %}
         <div class="name-fields">
-            <div>{{ form.name.label_tag }} {{ form.name }}</div>
-            <div>{{ form.surname.label_tag }} {{ form.surname }}</div>
+            <div>{{ form.first_name.label_tag }} {{ form.first_name }}</div>
+            <div>{{ form.last_name.label_tag }} {{ form.last_name }}</div>
         </div>
         {{ form.email.label_tag }} {{ form.email }}
         {{ form.password.label_tag }} {{ form.password }}

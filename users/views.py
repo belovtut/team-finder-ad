@@ -1,12 +1,14 @@
 import json
+from http import HTTPStatus
 
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
-from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+
+from team_finder.pagination import DEFAULT_PAGE_SIZE, paginate_queryset
 
 from .forms import LoginForm, ProfileEditForm, RegistrationForm
 from .models import User
@@ -15,19 +17,21 @@ from projects.models import Skill
 
 def register(request):
     if request.method == "POST":
-        form = RegistrationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect("users:login")
-    else:
-        form = RegistrationForm()
+        form = RegistrationForm(request.POST or None)
+        if not form.is_valid():
+            return render(request, "users/register.html", {"form": form})
+
+        form.save()
+        return redirect("users:login")
+
+    form = RegistrationForm()
 
     return render(request, "users/register.html", {"form": form})
 
 
 def login_view(request):
     if request.method == "POST":
-        form = LoginForm(request.POST, request=request)
+        form = LoginForm(request.POST or None, request=request)
         if form.is_valid():
             login(request, form.cleaned_data["user"])
             return redirect("projects:list")
@@ -53,12 +57,18 @@ def user_detail(request, user_id):
 @login_required
 def edit_profile(request):
     if request.method == "POST":
-        form = ProfileEditForm(request.POST, request.FILES, instance=request.user)
-        if form.is_valid():
-            form.save()
-            return redirect("users:detail", user_id=request.user.id)
-    else:
-        form = ProfileEditForm(instance=request.user)
+        form = ProfileEditForm(request.POST or None, request.FILES, instance=request.user)
+        if not form.is_valid():
+            return render(
+                request,
+                "users/edit_profile.html",
+                {"form": form, "user": request.user},
+            )
+
+        form.save()
+        return redirect("users:detail", user_id=request.user.id)
+
+    form = ProfileEditForm(instance=request.user)
 
     return render(
         request,
@@ -73,7 +83,7 @@ def edit_profile(request):
 @login_required
 def change_password(request):
     if request.method == "POST":
-        form = PasswordChangeForm(user=request.user, data=request.POST)
+        form = PasswordChangeForm(user=request.user, data=request.POST or None)
         if form.is_valid():
             user = form.save()
             update_session_auth_hash(request, user)
@@ -85,7 +95,7 @@ def change_password(request):
 
 
 def participants_list(request):
-    participants = User.objects.order_by("-id")
+    participants = User.objects.all()
     active_filter = None
 
     filter_value = request.GET.get("filter")
@@ -110,9 +120,7 @@ def participants_list(request):
                 .distinct()
             )
 
-    participants = participants.order_by("-id")
-    paginator = Paginator(participants, 12)
-    page_obj = paginator.get_page(request.GET.get("page"))
+    page_obj = paginate_queryset(participants, request.GET.get("page"), DEFAULT_PAGE_SIZE)
 
     return render(
         request,
@@ -139,7 +147,7 @@ def skills_search(request):
 def skills_add(request, user_id):
     target_user = get_object_or_404(User, pk=user_id)
     if request.user != target_user and not request.user.is_staff:
-        return JsonResponse({"status": "error"}, status=403)
+        return JsonResponse({"status": "error"}, status=HTTPStatus.FORBIDDEN)
 
     try:
         payload = json.loads(request.body or "{}")
@@ -153,7 +161,7 @@ def skills_add(request, user_id):
     else:
         name = (payload.get("name") or "").strip()
         if not name:
-            return JsonResponse({"status": "error"}, status=400)
+            return JsonResponse({"status": "error"}, status=HTTPStatus.BAD_REQUEST)
         skill = Skill.objects.filter(name__iexact=name).first()
         if not skill:
             skill = Skill.objects.create(name=name)
@@ -167,7 +175,7 @@ def skills_add(request, user_id):
 def skills_remove(request, user_id, skill_id):
     target_user = get_object_or_404(User, pk=user_id)
     if request.user != target_user and not request.user.is_staff:
-        return JsonResponse({"status": "error"}, status=403)
+        return JsonResponse({"status": "error"}, status=HTTPStatus.FORBIDDEN)
 
     skill = get_object_or_404(Skill, pk=skill_id)
     target_user.skills.remove(skill)

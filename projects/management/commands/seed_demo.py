@@ -20,10 +20,10 @@ class Command(BaseCommand):
             skills = [Skill.objects.get_or_create(name=name)[0] for name in skills_data]
 
             users = []
-            for email, name, surname in users_data:
+            for email, first_name, last_name in users_data:
                 user, created = User.objects.get_or_create(
                     email=email,
-                    defaults={"name": name, "surname": surname},
+                    defaults={"first_name": first_name, "last_name": last_name},
                 )
                 if created:
                     user.set_password("demo12345")
@@ -36,7 +36,7 @@ class Command(BaseCommand):
                     defaults={
                         "description": "Sample project created for demo purposes.",
                         "owner": user,
-                        "status": Project.STATUS_OPEN,
+                        "status": Project.Status.OPEN,
                     },
                 )
                 if created:

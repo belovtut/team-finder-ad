@@ -10,7 +10,7 @@
                     <img src="{% static 'images/default-avatar.png' %}" alt="Аватар по умолчанию" class="avatar">
                 {% endif %}
                 <div class="project-owner">
-                    <a href="{% url 'users:detail' project.owner.id %}">{{ project.owner.name }} {{ project.owner.surname }}</a>
+                    <a href="{% url 'users:detail' project.owner.id %}">{{ project.owner.first_name }} {{ project.owner.last_name }}</a>
                     <small class="project-date">{{ project.created_at|date:"d.m.Y" }}</small>
                 </div>
             </div>

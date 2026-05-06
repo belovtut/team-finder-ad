@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="{% static 'css/project_details.css' %}">
 {% endblock %}
 
-{% with page_id="project" %}
+{% block page_id %}project{% endblock %}
 {% block content %}
 <div class="project-container">
     <div class="project-card">
@@ -20,7 +20,7 @@
                         <img src="{% static 'images/default-avatar.png' %}" alt="Аватар по умолчанию" class="project-author-avatar">
                     {% endif %}
                     <div class="project-meta">
-                        <span class="project-author">{{ project.owner.name }} {{ project.owner.surname }}</span>
+                        <span class="project-author">{{ project.owner.first_name }} {{ project.owner.last_name }}</span>
                         <span class="project-date">{{ project.created_at|date:"d.m.Y" }}</span>
                     </div>
                 </div>
@@ -81,7 +81,7 @@
                     <button id="participate-btn" class="black-button"
                             data-project="{{ project.id }}"
                             data-user-id="{{ request.user.id }}"
-                            data-user-name="{{ request.user.name }} {{ request.user.surname }}"
+                            data-user-name="{{ request.user.first_name }} {{ request.user.last_name }}"
                             data-user-avatar="{% if request.user.avatar %}{{ request.user.avatar.url }}{% else %}{% static 'images/default-avatar.png' %}{% endif %}"
                     >
                         {% if request.user in project.participants.all %}
@@ -108,7 +108,7 @@
                     <img src="{% static 'images/default-avatar.png' %}" alt="Аватар по умолчанию" class="participant-avatar">
                 {% endif %}
                 <div class="participant-info">
-                    <span class="participant-name">{{ member.name }} {{ member.surname }}</span>
+                    <span class="participant-name">{{ member.first_name }} {{ member.last_name }}</span>
                     <span class="participant-role">
                         {% if member.id == project.owner.id %}Автор проекта{% else %}Участник{% endif %}
                     </span>
@@ -147,4 +147,3 @@
 
 </div>
 {% endblock %}
-{% endwith %}

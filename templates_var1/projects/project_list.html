@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="{% static 'css/project_list.css' %}">
 {% endblock %}
 
-{% with page_id="projects-list" %}
+{% block page_id %}projects-list{% endblock %}
 {% block content %}
 <div class="project-container">
     <div class="project-header">
@@ -61,4 +61,3 @@
 </div>
 
 {% endblock %}
-{% endwith %}

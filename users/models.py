@@ -9,6 +9,10 @@ from django.core.files.base import ContentFile
 from django.db import models
 from PIL import Image, ImageDraw, ImageFont
 
+NAME_MAX_LENGTH = 124
+PHONE_MAX_LENGTH = 12
+ABOUT_MAX_LENGTH = 256
+
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -34,13 +38,13 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(unique=True)
-    name = models.CharField(max_length=124)
-    surname = models.CharField(max_length=124)
-    avatar = models.ImageField(upload_to="avatars/", blank=True)
-    phone = models.CharField(max_length=12, blank=True, null=True, unique=True)
-    github_url = models.URLField(blank=True)
-    about = models.TextField(max_length=256, blank=True)
+    email = models.EmailField("email", unique=True)
+    first_name = models.CharField("first name", max_length=NAME_MAX_LENGTH)
+    last_name = models.CharField("last name", max_length=NAME_MAX_LENGTH)
+    avatar = models.ImageField("avatar", upload_to="avatars/", blank=True)
+    phone = models.CharField("phone", max_length=PHONE_MAX_LENGTH, blank=True, null=True, unique=True)
+    github_url = models.URLField("github url", blank=True)
+    about = models.TextField("about", max_length=ABOUT_MAX_LENGTH, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     favorites = models.ManyToManyField(
@@ -57,10 +61,15 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["name", "surname"]
+    REQUIRED_FIELDS = ["first_name", "last_name"]
+
+    class Meta:
+        verbose_name = "user"
+        verbose_name_plural = "users"
+        ordering = ["-id"]
 
     def __str__(self):
-        return f"{self.name} {self.surname}"
+        return f"{self.first_name} {self.last_name}"
 
     def save(self, *args, **kwargs):
         if not self.avatar:
@@ -79,7 +88,7 @@ class User(AbstractBaseUser, PermissionsMixin):
                 "#9C7C7C",
             ]
         )
-        letter = (self.name or self.email or "?")[0].upper()
+        letter = (self.first_name or self.email or "?")[0].upper()
 
         image = Image.new("RGB", (size, size), color=_hex_to_rgb(bg_color))
         draw = ImageDraw.Draw(image)

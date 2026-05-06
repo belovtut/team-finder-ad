@@ -35,7 +35,7 @@
                     {% else %}
                         <img src="{% static 'images/default-avatar.png' %}" alt="Аватар по умолчанию" class="avatar">
                     {% endif %}
-                    <span class="username">{{ request.user.name }} {{ request.user.surname }}</span>
+                    <span class="username">{{ request.user.first_name }} {{ request.user.last_name }}</span>
                 </a>
                 {% else %}
                 <button class="button button-login nav-link" onclick="window.location.href='{% url 'users:login' %}'">
