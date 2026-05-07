@@ -9,9 +9,7 @@ from django.core.files.base import ContentFile
 from django.db import models
 from PIL import Image, ImageDraw, ImageFont
 
-NAME_MAX_LENGTH = 124
-PHONE_MAX_LENGTH = 12
-ABOUT_MAX_LENGTH = 256
+from team_finder.constants import USER_ABOUT_MAX_LENGTH, USER_NAME_MAX_LENGTH, USER_PHONE_MAX_LENGTH
 
 
 class UserManager(BaseUserManager):
@@ -39,12 +37,12 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField("email", unique=True)
-    first_name = models.CharField("first name", max_length=NAME_MAX_LENGTH)
-    last_name = models.CharField("last name", max_length=NAME_MAX_LENGTH)
+    first_name = models.CharField("first name", max_length=USER_NAME_MAX_LENGTH)
+    last_name = models.CharField("last name", max_length=USER_NAME_MAX_LENGTH)
     avatar = models.ImageField("avatar", upload_to="avatars/", blank=True)
-    phone = models.CharField("phone", max_length=PHONE_MAX_LENGTH, blank=True, null=True, unique=True)
+    phone = models.CharField("phone", max_length=USER_PHONE_MAX_LENGTH, blank=True, null=True, unique=True)
     github_url = models.URLField("github url", blank=True)
-    about = models.TextField("about", max_length=ABOUT_MAX_LENGTH, blank=True)
+    about = models.TextField("about", max_length=USER_ABOUT_MAX_LENGTH, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     favorites = models.ManyToManyField(

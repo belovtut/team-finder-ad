@@ -75,12 +75,6 @@ class ProfileEditForm(forms.ModelForm):
         if phone.startswith("8"):
             phone = "+7" + phone[1:]
 
-        qs = User.objects.filter(phone=phone)
-        if self.instance.pk:
-            qs = qs.exclude(pk=self.instance.pk)
-        if qs.exists():
-            raise ValidationError("Этот номер телефона уже используется")
-
         return phone
 
     def clean_github_url(self):

@@ -8,11 +8,12 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from team_finder.pagination import DEFAULT_PAGE_SIZE, paginate_queryset
+from projects.models import Skill
+from team_finder.constants import SKILLS_SEARCH_LIMIT
+from team_finder.pagination import DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE, paginate_queryset
 
 from .forms import LoginForm, ProfileEditForm, RegistrationForm
 from .models import User
-from projects.models import Skill
 
 
 def register(request):
@@ -120,7 +121,11 @@ def participants_list(request):
                 .distinct()
             )
 
-    page_obj = paginate_queryset(participants, request.GET.get("page"), DEFAULT_PAGE_SIZE)
+    page_obj = paginate_queryset(
+        participants,
+        request.GET.get("page", DEFAULT_PAGE_NUMBER),
+        DEFAULT_PAGE_SIZE,
+    )
 
     return render(
         request,
@@ -138,7 +143,7 @@ def skills_search(request):
     if not query:
         return JsonResponse([], safe=False)
 
-    skills = Skill.objects.filter(name__icontains=query).order_by("name")[:10]
+    skills = Skill.objects.filter(name__icontains=query)[:SKILLS_SEARCH_LIMIT]
     return JsonResponse([{"id": skill.id, "name": skill.name} for skill in skills], safe=False)
 
 
@@ -162,9 +167,7 @@ def skills_add(request, user_id):
         name = (payload.get("name") or "").strip()
         if not name:
             return JsonResponse({"status": "error"}, status=HTTPStatus.BAD_REQUEST)
-        skill = Skill.objects.filter(name__iexact=name).first()
-        if not skill:
-            skill = Skill.objects.create(name=name)
+        skill, _ = Skill.objects.get_or_create(name__iexact=name, defaults={"name": name})
 
     target_user.skills.add(skill)
     return JsonResponse({"id": skill.id, "name": skill.name})

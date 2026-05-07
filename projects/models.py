@@ -1,9 +1,11 @@
 from django.conf import settings
 from django.db import models
 
-PROJECT_NAME_MAX_LENGTH = 200
-SKILL_NAME_MAX_LENGTH = 64
-PROJECT_STATUS_MAX_LENGTH = 10
+from team_finder.constants import (
+    PROJECT_NAME_MAX_LENGTH,
+    PROJECT_STATUS_MAX_LENGTH,
+    SKILL_NAME_MAX_LENGTH,
+)
 
 class Skill(models.Model):
     name = models.CharField("name", max_length=SKILL_NAME_MAX_LENGTH, unique=True)
@@ -11,6 +13,7 @@ class Skill(models.Model):
     class Meta:
         verbose_name = "skill"
         verbose_name_plural = "skills"
+        ordering = ["name"]
 
     def __str__(self):
         return self.name

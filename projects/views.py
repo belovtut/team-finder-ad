@@ -6,7 +6,8 @@ from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from team_finder.pagination import DEFAULT_PAGE_SIZE, paginate_queryset
+from team_finder.constants import SKILLS_SEARCH_LIMIT
+from team_finder.pagination import DEFAULT_PAGE_NUMBER, DEFAULT_PAGE_SIZE, paginate_queryset
 
 from .forms import ProjectForm
 from .models import Project, Skill
@@ -15,7 +16,7 @@ from .models import Project, Skill
 def project_list(request):
     projects = Project.objects.select_related("owner").prefetch_related("participants", "skills")
 
-    skills = Skill.objects.order_by("name")
+    skills = Skill.objects.all()
     active_skill = None
     skill_param = request.GET.get("skill")
     if skill_param:
@@ -25,7 +26,11 @@ def project_list(request):
         except ValueError:
             active_skill = None
 
-    page_obj = paginate_queryset(projects, request.GET.get("page"), DEFAULT_PAGE_SIZE)
+    page_obj = paginate_queryset(
+        projects,
+        request.GET.get("page", DEFAULT_PAGE_NUMBER),
+        DEFAULT_PAGE_SIZE,
+    )
 
     favorite_ids = set()
     if request.user.is_authenticated:
@@ -68,7 +73,11 @@ def project_detail(request, project_id):
 def favorite_projects(request):
     projects = request.user.favorites.select_related("owner").prefetch_related("participants")
 
-    page_obj = paginate_queryset(projects, request.GET.get("page"), DEFAULT_PAGE_SIZE)
+    page_obj = paginate_queryset(
+        projects,
+        request.GET.get("page", DEFAULT_PAGE_NUMBER),
+        DEFAULT_PAGE_SIZE,
+    )
 
     favorite_ids = set(request.user.favorites.values_list("id", flat=True))
 
@@ -188,7 +197,7 @@ def skills_search(request):
     if not query:
         return JsonResponse([], safe=False)
 
-    skills = Skill.objects.filter(name__icontains=query).order_by("name")[:10]
+    skills = Skill.objects.filter(name__icontains=query)[:SKILLS_SEARCH_LIMIT]
     return JsonResponse([{"id": skill.id, "name": skill.name} for skill in skills], safe=False)
 
 
@@ -212,9 +221,7 @@ def skills_add(request, project_id):
         name = (payload.get("name") or "").strip()
         if not name:
             return JsonResponse({"status": "error"}, status=HTTPStatus.BAD_REQUEST)
-        skill = Skill.objects.filter(name__iexact=name).first()
-        if not skill:
-            skill = Skill.objects.create(name=name)
+        skill, _ = Skill.objects.get_or_create(name__iexact=name, defaults={"name": name})
 
     project.skills.add(skill)
     return JsonResponse({"id": skill.id, "name": skill.name})
